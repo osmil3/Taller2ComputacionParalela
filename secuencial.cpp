@@ -61,7 +61,7 @@ void close_ssh_channel(ssh_channel& channel) {
        
 }
 
-
+//Funcion para ejecutar comandos en servidor SSH
 int ejecutarcomando(ssh_session session, const std::string& command, std::string& output) {
     ssh_channel channel = ssh_channel_new(session);
     int rc = ssh_channel_open_session(channel);
@@ -92,7 +92,7 @@ int ejecutarcomando(ssh_session session, const std::string& command, std::string
     return 0;
 }
 
-
+//Funcion que recibe string con rsultados de filtro por fechas y los filtra por estados
 std::string filtrarPorEstados(const std::string& productosStr, const std::vector<std::string>& estadosPermitidos) {
     std::istringstream iss(productosStr);
     std::ostringstream filteredOutput;
@@ -159,7 +159,7 @@ std::vector<std::vector<Producto>> obtenerProductosPorMeses(ssh_session session,
     }
     return productosPorMeses;
 }
-
+//Funcion que recibe vector con todos los productos por meses y devuelve un vector con aquellos productos que se repitendurante todos los meses
 std::vector<Producto> obtenerProductosRepetidos(const std::vector<std::vector<Producto>>& productosPorMeses) {
     std::vector<Producto> productosRepetidos;
     if (productosPorMeses.size() > 0) {
@@ -243,6 +243,7 @@ int main() {
         std::cerr << "Error al crear la sesión SSH." << std::endl;
         return 1;
     }
+    //Se usaron estos datos al trabajar de forma remota en primera instancia
     const std::string host = "146.190.172.171";
     const std::string port = "22";
     const std::string username = "grupob";
@@ -262,6 +263,7 @@ int main() {
         ssh_free(sshConnection.session);
         return 1;
     }
+    //lista con fechas para luego filtrar
 std::vector<std::string> filtrosFecha = {
     "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06",
     "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"
