@@ -33,7 +33,6 @@ int connect_ssh(ssh_session session, const std::string& host, const std::string&
         std::cerr << "Error al conectar al servidor SSH: " << ssh_get_error(session) << std::endl;
         return 1;
     }
-    std::cout << "Conexión SSH establecida." << std::endl;
     // Autenticarse con el servidor SSH utilizando la contraseña
     rc = ssh_userauth_password(session, NULL, password.c_str());
     if (rc != SSH_AUTH_SUCCESS) {
