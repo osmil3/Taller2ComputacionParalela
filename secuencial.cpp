@@ -50,7 +50,7 @@ int open_ssh_channel(ssh_session session, ssh_channel& channel) {
         std::cerr << "Error al abrir el canal de sesión SSH: " << ssh_get_error(session) << std::endl;
         return 1;
     }
-std::cout << "Canal SSH abierto." << std::endl;
+
     return 0;
 }
 
@@ -59,7 +59,7 @@ void close_ssh_channel(ssh_channel& channel) {
     ssh_channel_send_eof(channel);
     ssh_channel_close(channel);
     ssh_channel_free(channel);
-        std::cout << "Canal SSH cerrado." << std::endl;
+       
 }
 
 
@@ -125,7 +125,7 @@ std::vector<std::vector<Producto>> obtenerProductosPorMeses(ssh_session session,
         std::string commandOutput;
         int rc = ejecutarcomando(session, command, commandOutput);
         std::string productosFiltrados = filtrarPorEstados(commandOutput, {"FINALIZED", "AUTHORIZED"});
-std::cout << "Filtro." << std::endl;
+
         std::istringstream iss(productosFiltrados);
         std::unordered_map<std::string, std::pair<int, std::pair<std::string, std::string>>> productInfo;  // SKU -> (cantidad, (nombre, precio))
         std::string line;
@@ -190,11 +190,12 @@ void calcularCanastaPorMes(const std::vector<Producto>& productosRepetidos, cons
         return;
     }
 
-    const std::vector<Producto>& productosMesBase = productosPorMeses[0];  // Mes base de referencia
+    const std::vector<Producto>& productosMesBase = productosPorMeses[0];  // Primer mes como canasta base
     int totalCanastaBase = 0;
     double inflacionAcumulada = 0.0;
+    double ipcBase = 100.0;  // IPC base inicializado en 100
 
-    // Calcular el total de la canasta del mes base
+    // Calcular el total de la canasta del primer mes (canasta base)
     for (const Producto& producto : productosRepetidos) {
         auto it = std::find_if(productosMesBase.begin(), productosMesBase.end(),
             [&producto](const Producto& p) { return p.SKU == producto.SKU; });
@@ -222,15 +223,19 @@ void calcularCanastaPorMes(const std::vector<Producto>& productosRepetidos, cons
                 totalCanasta += precio;
             }
         }
-        // Calcular la inflación respecto al mes base
-        double inflacion = ((totalCanasta - totalCanastaBase) / static_cast<double>(totalCanastaBase)) * 100.0;
+        // Calcular el IPC del mes actual
+        double ipc = (totalCanasta / static_cast<double>(totalCanastaBase)) * 100.0;
+        // Calcular la inflación respecto al IPC base
+        double inflacion = ((ipc - ipcBase) / ipcBase) * 100.0;
+        // Actualizar el IPC base
+        ipcBase = ipc;
         // Calcular la inflación acumulada
         inflacionAcumulada += inflacion;
-        // Imprimir la inflación con 4 decimales y la inflación acumulada
-       // std::cout << std::fixed << std::setprecision(4);  // Establecer el formato de impresión
-        std::cout << "Inflación del mes " << i << ": " << inflacion << "%" << std::endl;
-        std::cout << "Inflación acumulada hasta el mes " << i << ": " << inflacionAcumulada << "%" << std::endl;
+        
+        
     }
+    std::cout << std::fixed << std::setprecision(4);  // Establecer el formato de impresión
+        std::cout << "Inflación acumulada: " << inflacionAcumulada << "%" << std::endl;
 }
 int main() {
     SSHConnection sshConnection;
@@ -273,5 +278,3 @@ std::vector<Producto> productosRepetidos = obtenerProductosRepetidos(productosPo
 
     return conectar;
 }
-
-
